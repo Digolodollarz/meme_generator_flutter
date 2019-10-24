@@ -15,11 +15,15 @@ class CreatePage extends StatefulWidget {
 class _CreatePageState extends State<CreatePage> {
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: CreateModernWidget(
-        text: widget.image.title,
-        image: widget.image.file,
+    return WillPopScope(
+      child: Scaffold(
+        appBar: AppBar(title: Text("Unsettled Tom")),
+        body: CreateModernWidget(
+          text: widget.image.title,
+          image: widget.image.file,
+        ),
       ),
+      onWillPop: () {},
     );
   }
 }

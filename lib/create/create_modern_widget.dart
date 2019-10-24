@@ -27,6 +27,8 @@ class _CreateModernWidgetState extends State<CreateModernWidget> {
   static const textFieldPadding = EdgeInsets.all(8.0);
   static const textFieldTextStyle = TextStyle(fontSize: 30.0);
 
+  File _savedFile;
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +51,7 @@ class _CreateModernWidgetState extends State<CreateModernWidget> {
                     width: dimensions,
                     height: dimensions + 16,
                     child: Container(
+                      margin: EdgeInsets.all(8),
                       color: Colors.white,
                       padding: EdgeInsets.all(8),
                       child: Column(
@@ -114,9 +117,25 @@ class _CreateModernWidgetState extends State<CreateModernWidget> {
                 },
               ),
             ),
-            RaisedButton(
-              child: Text('Save Image'),
-              onPressed: _capturePng,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  RaisedButton.icon(
+                    icon: Icon(Icons.save_alt),
+                    label: Text('Save Image'),
+                    onPressed: _capturePng,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  RaisedButton.icon(
+                    icon: Icon(Icons.share),
+                    label: Text('Share'),
+                    onPressed: _sharePng,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -147,6 +166,11 @@ class _CreateModernWidgetState extends State<CreateModernWidget> {
     } catch (e) {
       print(e);
     }
+  }
+
+  _sharePng() async {
+    _savedFile = _savedFile ?? await _capturePng();
+    if (_savedFile == null) return;
   }
 
   Future<File> _saveFile(List<int> pngBytes) async {
