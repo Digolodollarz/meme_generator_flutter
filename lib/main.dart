@@ -12,6 +12,7 @@ import 'package:meme_generator/history/history_widget.dart';
 import 'package:meme_generator/models.dart';
 import 'package:meme_generator/theme.dart';
 
+import 'about_page.dart';
 import 'ads.dart';
 
 void main() => runApp(MyApp());
@@ -60,46 +61,66 @@ class _MyHomePageState extends State<MyHomePage> {
     this.setState(() {
       _selectedIndex = index;
     });
+    Navigator.of(context).pop();
   }
 
   @override
   void initState() {
     super.initState();
     this._sendAnalyticsEvent();
-    _bannerAd = Ads.myTestBanner..load()..show();
+    _bannerAd = Ads.myTestBanner
+      ..load()
+      ..show();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: _selectedIndex == 1
-          ? CreateWidget()
-          : _selectedIndex == 2 ? HistoryWidget() : BrowseWidget(),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.photo_library),
-            title: Text('Browse'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.create),
-            title: Text('Create'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            title: Text('History'),
-          ),
-        ],
-        currentIndex: _selectedIndex,
-//        selectedItemColor: Colors.amber[800],
-        onTap: _onItemTapped,
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openImageAsset,
-        child: Icon(Icons.photo_library),
+    return Padding(
+      padding: EdgeInsets.only(bottom: _getSmartBannerHeight(context)),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.title),
+        ),
+        body: _selectedIndex == 1
+            ? CreateWidget()
+            : _selectedIndex == 2 ? HistoryWidget() : BrowseWidget(),
+//TODO: Implement the other screen and add the drawer like that.
+//        drawer: Drawer(
+//          child: ListView(
+//            children: <Widget>[
+//              DrawerHeader(
+//                child: Text('Modern Meme'),
+//                decoration:
+//                    BoxDecoration(color: Theme.of(context).primaryColor),
+//              ),
+//              ListTile(
+//                title: Text("Browse"),
+//                onTap: () {
+//                  _onItemTapped(0);
+//                },
+//              ),
+//              ListTile(
+//                title: Text("History"),
+//                onTap: () {
+//                  _onItemTapped(2);
+//                },
+//              ),
+//              Divider(),
+//              ListTile(
+//                title: Text("About"),
+//                onTap: () {
+//                  Navigator.of(context).pop();
+//                  Navigator.of(context).push(
+//                      MaterialPageRoute(builder: (context) => AboutPage()));
+//                },
+//              ),
+//            ],
+//          ),
+//        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _openImageAsset,
+          child: Icon(Icons.photo_library),
+        ),
       ),
     );
   }
@@ -132,5 +153,19 @@ class _MyHomePageState extends State<MyHomePage> {
         'date': DateTime.now().toIso8601String()
       },
     );
+  }
+
+  double _getSmartBannerHeight(BuildContext context) {
+    MediaQueryData mediaScreen = MediaQuery.of(context);
+    double dpHeight = mediaScreen.orientation == Orientation.portrait
+        ? mediaScreen.size.height
+        : mediaScreen.size.width;
+    if (dpHeight <= 400.0) {
+      return 32.0;
+    }
+    if (dpHeight > 720.0) {
+      return 90.0;
+    }
+    return 50.0;
   }
 }
