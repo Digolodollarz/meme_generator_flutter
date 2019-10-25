@@ -68,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     this._sendAnalyticsEvent();
-    _bannerAd = Ads.myTestBanner
+    _bannerAd = Ads.homeBanner
       ..load()
       ..show();
   }

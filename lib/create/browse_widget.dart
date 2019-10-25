@@ -22,8 +22,8 @@ class BrowseWidget extends StatelessWidget {
                 return Text('Loading');
               return Center(
                 child: ListView(
-                  children: snapshot.data.documents
-                      .map((DocumentSnapshot document) {
+                  children:
+                      snapshot.data.documents.map((DocumentSnapshot document) {
                     final url = document['image_url'];
                     final title = document['title'];
                     return Padding(
@@ -61,12 +61,13 @@ class BrowseWidget extends StatelessWidget {
                             Navigator.of(context)
                                 .push(MaterialPageRoute(builder: (context) {
                               var image = MemeImage();
-                              image.title = "A modern type of meme";
+                              image.title = title;
                               image.file = file;
                               return CreatePage(
                                 image: image,
                               );
                             }));
+
                           }
                         },
                       ),

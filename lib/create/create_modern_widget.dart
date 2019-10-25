@@ -3,10 +3,13 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:esys_flutter_share/esys_flutter_share.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
+
 //import 'package:image/image.dart' as img;
+import 'package:permission_handler/permission_handler.dart';
 
 class CreateModernWidget extends StatefulWidget {
   final String text;
@@ -38,6 +41,7 @@ class _CreateModernWidgetState extends State<CreateModernWidget> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
+        padding: EdgeInsets.all(8),
         child: Column(
           children: [
             RepaintBoundary(
@@ -51,7 +55,6 @@ class _CreateModernWidgetState extends State<CreateModernWidget> {
                     width: dimensions,
                     height: dimensions + 16,
                     child: Container(
-                      margin: EdgeInsets.all(8),
                       color: Colors.white,
                       padding: EdgeInsets.all(8),
                       child: Column(
@@ -65,6 +68,8 @@ class _CreateModernWidgetState extends State<CreateModernWidget> {
                                 text: _controller.text,
                                 style: textFieldTextStyle,
                               ),
+                              textScaleFactor:
+                                  MediaQuery.of(context).textScaleFactor,
                             );
                             textPainter.layout(maxWidth: size.maxWidth);
 
@@ -72,11 +77,17 @@ class _CreateModernWidgetState extends State<CreateModernWidget> {
                             int lines = (textPainter.size.height /
                                     textPainter.preferredLineHeight)
                                 .ceil();
-                            print('lines $lines');
 
+                            print('font: $fontSize, '
+                                'lines $lines '
+                                'textHeight: ${textPainter.height}, '
+                                'dimensions: $dimensions, '
+                                'systemScaleFactor: ${MediaQuery.of(context).textScaleFactor} '
+                                'scaleFactor: ${textPainter.textScaleFactor}');
                             // not really efficient and doesn't find the perfect size,
                             // but gets the job done!
-                            while (textPainter.size.height > (dimensions / 4)) {
+                            while (
+                                textPainter.size.height >= (dimensions / 4)) {
                               fontSize -= 0.5;
                               textPainter.text = TextSpan(
                                 text: _controller.text,
@@ -117,25 +128,22 @@ class _CreateModernWidgetState extends State<CreateModernWidget> {
                 },
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  RaisedButton.icon(
-                    icon: Icon(Icons.save_alt),
-                    label: Text('Save Image'),
-                    onPressed: _capturePng,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  RaisedButton.icon(
-                    icon: Icon(Icons.share),
-                    label: Text('Share'),
-                    onPressed: _sharePng,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ],
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                RaisedButton.icon(
+                  icon: Icon(Icons.save_alt),
+                  label: Text('Save Image'),
+                  onPressed: _capturePng,
+                  color: Theme.of(context).primaryColor,
+                ),
+                RaisedButton.icon(
+                  icon: Icon(Icons.share),
+                  label: Text('Share'),
+                  onPressed: _sharePng,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ],
             ),
           ],
         ),
@@ -143,7 +151,7 @@ class _CreateModernWidgetState extends State<CreateModernWidget> {
     );
   }
 
-  Future<Uint8List> _capturePng() async {
+  Future<Uint8List> _capturePng({bool save = true}) async {
     try {
       print('inside');
       RenderRepaintBoundary boundary =
@@ -152,10 +160,11 @@ class _CreateModernWidgetState extends State<CreateModernWidget> {
       ByteData byteData =
           await image.toByteData(format: ui.ImageByteFormat.png);
       var pngBytes = byteData.buffer.asUint8List();
-      var bs64 = base64Encode(pngBytes);
-      print(pngBytes);
-      print(bs64);
+//      var bs64 = base64Encode(pngBytes);
+//      print(pngBytes);
+//      print(bs64);
 //      setState(() {});
+      if (!save) return pngBytes;
       var file = await _saveFile(pngBytes);
       if (file.existsSync()) {
         print('Saved');
@@ -165,34 +174,75 @@ class _CreateModernWidgetState extends State<CreateModernWidget> {
       return pngBytes;
     } catch (e) {
       print(e);
+      return null;
     }
   }
 
   _sharePng() async {
-    _savedFile = _savedFile ?? await _capturePng();
-    if (_savedFile == null) return;
+    var bytes = await _capturePng(save: false);
+    if (bytes == null) return;
+    await Share.file(
+        'Share meme', 'meme.png', bytes.buffer.asUint8List(), 'image/png');
   }
 
   Future<File> _saveFile(List<int> pngBytes) async {
+    PermissionStatus permission = await PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.storage);
+    if (permission != PermissionStatus.granted) {
+      var permissions = await PermissionHandler()
+          .requestPermissions([PermissionGroup.storage]);
+      permission = permissions[PermissionGroup.storage];
+      if (permission != PermissionStatus.granted) {
+        await showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text("No storage permissions"),
+                content:
+                    Text("You have not approved storage permissions, so the "
+                        "image cannot be save to the gallery."),
+                actions: <Widget>[
+                  FlatButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('Cancel'),
+                  )
+                ],
+              );
+            });
+
+        return null;
+      }
+    }
+
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        });
+
     final dir = await getExternalStorageDirectory();
-    if (!dir.existsSync()) {
-      dir.createSync(recursive: true);
-      if (dir.existsSync())
+
+    File file =
+        File('${dir.path}/Meme/${DateTime.now().toIso8601String()}.png');
+    if (!file.existsSync()) {
+      file.createSync(recursive: true);
+      if (file.existsSync())
         print('Done Create');
       else
         print('Ndakonewa');
-    } else {
-      print('Exists');
     }
-
-    File file = File('${dir.path}/Meme/${DateTime.now().toIso8601String()}.png')
-      ..writeAsBytesSync(pngBytes);
+    file.writeAsBytesSync(pngBytes);
     print(file);
     if (file.existsSync()) {
-      print('Exists');
+      print('Saved');
     } else {
       print('Agh');
     }
+    Navigator.of(context).pop();
     return file;
   }
 }
