@@ -16,7 +16,6 @@ dependencies:
   firebase_core: ^0.4.0+9
   firebase_analytics: ^5.0.2
   firebase_admob: 0.9.0+7
-#  admob_flutter: ^0.3.1
   cloud_firestore: ^0.12.9
   http: ^0.12.0
   flutter_cache_manager: ^1.1.3
@@ -27,9 +26,17 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: 0.7.3
 
 
 flutter:
 
   uses-material-design: true
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_background: "#19b5f7"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
 
