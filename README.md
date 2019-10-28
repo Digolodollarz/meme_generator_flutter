@@ -4,13 +4,14 @@ Meme generator made with Flutter
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+This project is a proof of concept really, just to show what can be done in Flutter.
 
-A few resources to get you started if this is your first Flutter project:
+Donwload it from Play Store:  [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+##ToDo:
+[x] Create modern memes
+[x] Allow creating memes from gallery
+[x] Allow browsing meme templates
+[ ] Allow meme sharing
+[ ] Allow browsing user generated memes
+[ ] Create old type memes
